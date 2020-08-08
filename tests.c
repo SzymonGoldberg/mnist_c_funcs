@@ -1,5 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+
+void
+reverse_bytes_int(int *n)
+{
+	if(n == NULL) return;
+	int8_t *start = (int8_t *) n;
+	int8_t *end = (int8_t *) n + 3;
+	int8_t tmp;
+	for(int i = 0; i < 2; ++i)
+	{
+		tmp = *end;
+		*end = *start;
+		*start = tmp;
+		start++; end--;
+	}
+}
 
 int main (void)
 {
@@ -12,6 +30,7 @@ int main (void)
 
 	int size;
 	fread(&size, 1, sizeof(int), f);
+	reverse_bytes_int(&size);
 	printf("size = %i\n", size);
 	
 	return 0;
