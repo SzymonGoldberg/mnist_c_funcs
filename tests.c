@@ -1,27 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-
-
-void
-reverse_bytes_int(int *n)
-{
-	if(n == NULL) return;
-	int8_t *start = (int8_t *) n;
-	int8_t *end = (int8_t *) n + 3;
-	int8_t tmp;
-	for(int i = 0; i < 2; ++i)
-	{
-		tmp = *end;
-		*end = *start;
-		*start = tmp;
-		start++; end--;
-	}
-}
+#include "mnist_funcs.h"
 
 int main (void)
 {
-	FILE* f = fopen("t10k-images.idx3-ubyte", "rb");
+	FILE* f = fopen("t10k-labels.idx1-ubyte", "rb");
 	if(f == NULL) return 1;
 
 	int a;
@@ -32,6 +16,13 @@ int main (void)
 	fread(&size, 1, sizeof(int), f);
 	reverse_bytes_int(&size);
 	printf("size = %i\n", size);
+
+	unsigned char label;
+	for(int i = 0; i < size; ++i)
+	{
+		fread(&label, 1, sizeof(unsigned char), f);
+		printf("label = %u\n", label);
+	}
 	
 	return 0;
 }
