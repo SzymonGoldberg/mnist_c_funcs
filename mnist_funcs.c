@@ -46,6 +46,15 @@ read_idx1_file(const char *filename, int *size)
 	return result;
 }
 
+char *
+read_idx3_file(const char *filename, int *size)
+{
+
+}
+
+//funkcja alokuje i zwraca adres macierzy o rozmiarze
+//x = 10, y = <size>. w kazdym wierszu macierzy jest oznaczona
+//komorka o indeksie z <labels>
 matrix_t *
 matrix_alloc_mnist_labels(char *labels, int size)
 {
