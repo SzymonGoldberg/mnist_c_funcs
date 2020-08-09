@@ -6,10 +6,14 @@
 int main (void)
 {
 	int size = 0;
-	char *labels = read_idx1_file("t10k-labels-idx1-ubyte", &size);
+	char *labels = read_idx1_file("t10k-labels.idx1-ubyte", &size);
+	if(labels == NULL) return 1;
 
-	printf("size = %i\n", size);
+	matrix_t* a = matrix_alloc_mnist_labels(labels, size);
+	if(a == NULL) { free(labels); return 1; }
 
+	matrix_display(*a);
+        matrix_free(a);
 	free(labels);
 	return 0;
 }

@@ -46,10 +46,23 @@ read_idx1_file(const char *filename, int *size)
 	return result;
 }
 
+//NIEDOKONCZONE
 char *
 read_idx3_file(const char *filename, int *size)
 {
+	if(filename == NULL || size == NULL) return NULL;
 
+	FILE *f = fopen(filename, "rb");
+	if(f == NULL) return NULL;
+
+	int magic_number;
+	fread(&magic_number, 1, sizeof(int), f);
+
+	fread(size, 1, sizeof(int), f);
+	reverse_bytes_int(size);
+	if(!size) { fclose(f); return NULL; }
+
+	return NULL;
 }
 
 //funkcja alokuje i zwraca adres macierzy o rozmiarze
@@ -63,6 +76,6 @@ matrix_alloc_mnist_labels(char *labels, int size)
 	if(a == NULL) return NULL;
 
 	for(int i = 0; i < size; ++i)
-		a->matrix[*(labels + i) + i * a->y] = 1;
+		a->matrix[*(labels + i) + i * a->x] = 1;
 	return a;
 }
