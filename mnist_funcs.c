@@ -18,9 +18,6 @@ reverse_bytes_int(int *n)
 	}
 }
 
-//funkcja przyjmuje nazwe pliku <filename>, zczytuje z niego dane i zapisuje je
-//w tablicy charow ktora alokuje i zwraca, z kolei w zmiennej <size> zapisuje ile
-//danych zaalokowal
 char *
 read_idx1_file(const char *filename, int *size)
 {
@@ -46,11 +43,8 @@ read_idx1_file(const char *filename, int *size)
 	return result;
 }
 
-//funkcja zczytuje z pliku ilosc obrazow (<size>) i ich rozmiar (<width> * <height>)
-//alokuje pamiec i zczytuje do niej dane po czym zwraca dane w formie wskaznika na 
-//tablice stringow, w przypadku niepowodzenia zwraca NULL
-char **
-read_idx3_file(const char *filename, int *size, int *width, int *height)
+unsigned char **
+read_idx3_file(const char *filename, int *size, int *image_size)
 {
 	if(filename == NULL || size == NULL) return NULL;
 
@@ -67,24 +61,25 @@ read_idx3_file(const char *filename, int *size, int *width, int *height)
 	if(!(*size)) { fclose(f); return NULL; }
 
 //zczytuje height
-	fread(height, 1, sizeof(int), f);
-	reverse_bytes_int(height);
-	if(!(*height)) { fclose(f); return NULL; }
+	int height, width;
+	fread(&height, 1, sizeof(int), f);
+	reverse_bytes_int(&height);
+	if(!height) { fclose(f); return NULL; }
 
 //zczytuje width
-	fread(width, 1, sizeof(int), f);
-	reverse_bytes_int(width);
-	if(!(*width)) { fclose(f); return NULL; }
+	fread(&width, 1, sizeof(int), f);
+	reverse_bytes_int(&width);
+	if(!width) { fclose(f); return NULL; }
 
 //alokuje na tablice obrazow
-	char** result = (char **)calloc(*size, sizeof(char *));
+	unsigned char** result = (unsigned char **)calloc(*size, sizeof(char *));
 	if(result == NULL) { fclose(f); return NULL; }
 
 //alokuje na kazdy obraz
-	int image_size = (*width) * (*height);
+	*image_size = width * height;
 	for(int i = 0; i < *size; ++i)
 	{
-		*(result + i) = (char *)calloc(image_size, sizeof(char));
+		*(result + i) = (unsigned char *)calloc(*image_size, sizeof(char));
 		if(*(result + i) == NULL)
 		{
 			for(int g = i - 1; g > -1; --g) free( *(result + g));
@@ -96,23 +91,36 @@ read_idx3_file(const char *filename, int *size, int *width, int *height)
 
 //wpisuje dane do kazdego wskaznika
 	for(int i = 0; i < *size; ++i)
-		fread(*(result + i), sizeof(char), image_size, f);
+		fread(*(result + i), sizeof(char), *image_size, f);
 
+	fclose(f);
 	return result;
 }
 
-//TODO
-//>dokonczyc xd
 matrix_t *
 matrix_alloc_mnist_images(const char *filename)
 {
-	int size, width, height;
-	char **images = read_idx3_file(filename, &size, &width, &height);
-	return NULL; //DEBUG
+	int size, image_size;
+	unsigned char **images = read_idx3_file(filename, &size, &image_size);
+	if(images == NULL) return NULL;
+
+	matrix_t* a = matrix_alloc(image_size, size);
+	if(a == NULL)
+	{
+		for(int i = 0; i < size; ++i) free( *(images+i));
+		free(images);
+		return NULL;
+	}
+	
+	for(int i = 0; i < size; ++i)
+		for(int g = 0; g < image_size; ++g)
+			a->matrix[g + i*a->x] = (*(*(images + i) + g) / 255.0);
+
+	for(int i = 0; i < size; ++i) free( *(images+i));
+	free(images);
+	return a;
 }
 
-//funckja zczytuje dame z pliku <filename> i zwraca gotowa do uczenia macierz
-//w przypadku niepowodzenia zwraca NULL
 matrix_t *
 matrix_alloc_mnist_labels(const char *filename)
 {
