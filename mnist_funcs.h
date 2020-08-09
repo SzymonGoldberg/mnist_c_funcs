@@ -3,6 +3,8 @@
 #include "yann2c/matrix.h"
 
 char * read_idx1_file(const char *filename, int *size);
-matrix_t * matrix_alloc_mnist_labels(char *labels, int size);
+char ** read_idx3_file(const char *filename, int *size, int *width, int *height);
+
+matrix_t * matrix_alloc_mnist_labels(const char *filename);
 
 #endif
