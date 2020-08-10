@@ -12,12 +12,15 @@ char * read_idx1_file(const char *filename, int *size);
 //tablice stringow, w przypadku niepowodzenia zwraca NULL
 unsigned char ** read_idx3_file(const char *filename, int *size, int *image_size);
 
-//funkcja zczytuje dane z pliku <filename> i zwraca gotowa do uczenia macierz
-//wypelniona obrazami z pliku, w przypadku niepowodzenia zwraca NULL
-matrix_t * matrix_alloc_mnist_images(const char *filename);
-
-//funckja zczytuje dame z pliku <filename> i zwraca gotowa do uczenia macierz
+//funkcja zczytuje dane z pliku <filename> i zwraca gotowa do uczenia liste macierzy
+//wypelniona obrazami z pliku, w kazdej macierz przechowywane jest <batch_size> obrazow
 //w przypadku niepowodzenia zwraca NULL
-matrix_t * matrix_alloc_mnist_labels(const char *filename);
+struct matrix_array*
+matrix_alloc_mnist_images(const char *filename, int batch_size);
+
+//funckja zczytuje dame z pliku <filename> i zwraca gotowa do uczenia liste macierzy
+//w kazdej z macierzy jest <batch_size> etykiet
+//w przypadku niepowodzenia zwraca NULL
+struct matrix_array * matrix_alloc_mnist_labels(const char *filename, int batch_size);
 
 #endif

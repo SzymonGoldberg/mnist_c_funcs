@@ -97,42 +97,59 @@ read_idx3_file(const char *filename, int *size, int *image_size)
 	return result;
 }
 
-matrix_t *
-matrix_alloc_mnist_images(const char *filename)
+struct matrix_array*
+matrix_alloc_mnist_images(const char *filename, int batch_size)
 {
 	int size, image_size;
 	unsigned char **images = read_idx3_file(filename, &size, &image_size);
 	if(images == NULL) return NULL;
 
-	matrix_t* a = matrix_alloc(image_size, size);
+	struct matrix_array* a = matrix_array_create();
 	if(a == NULL)
 	{
 		for(int i = 0; i < size; ++i) free( *(images+i));
 		free(images);
 		return NULL;
 	}
+	int batch_counter = size/batch_size;
 	
-	for(int i = 0; i < size; ++i)
-		for(int g = 0; g < image_size; ++g)
-			a->matrix[g + i*a->x] = (*(*(images + i) + g) / 255.0);
+	int l = 0;
+	for(int z = 0; z < batch_counter; ++z)
+	{
+		if(matrix_array_append(a, image_size, batch_size)) break;
+		
+		for(int i = 0; i < batch_size; ++i, ++l)
+		{
+			for(int g = 0; g < image_size; ++g)
+				a->tail->matrix->matrix[g + i*a->tail->matrix->x]
+						= (*(*(images + l) + g) / 255.0);
+		}
+	}
 
 	for(int i = 0; i < size; ++i) free( *(images+i));
 	free(images);
 	return a;
 }
 
-matrix_t *
-matrix_alloc_mnist_labels(const char *filename)
+struct matrix_array *
+matrix_alloc_mnist_labels(const char *filename, int batch_size)
 {
 	int size;
 	char* labels = read_idx1_file(filename, &size);
 	if(labels == NULL) return NULL;
 
-	matrix_t* a = matrix_alloc(10, size);
+	struct matrix_array* a = matrix_array_create();
 	if(a == NULL) return NULL;
 
-	for(int i = 0; i < size; ++i)
-		a->matrix[*(labels + i) + i * a->x] = 1;
+	size /= batch_size;
+	int z = 0; 
+	for(int g = 0; g < size; ++g)
+	{
+		if(matrix_array_append(a, 10, batch_size)) { matrix_array_free(a); break;}
+
+		for(int i = 0; i < batch_size; ++i, ++z)
+			a->tail->matrix->matrix[*(labels + z) + i * a->tail->matrix->x] = 1;
+	}
 
 	free(labels);
 	return a;
